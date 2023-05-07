@@ -1,0 +1,83 @@
+---
+title: "Final Project"
+author: "Charles Etuk"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+listeninghistory <- read.csv("/Users/charlesetuk/Downloads/listeninghistory.csv")
+library(mdsr)
+library(lubridate)
+library(tidyverse)
+library(dplyr)
+library(plotly)
+```
+
+For my final project, I thought it'd be interesting to analyze my Spotify streaming data. I am an avid music listener to the point where it could be considered a hobby. I've been keeping track of my listening history through the website last.fm, which logs the Track Name, Artist Name, and Album Name of every listen. I've been using the website since 2020, so the data I used for this project is compiled over the last 3.5 years. I pulled my data using the website https://mainstream.ghan.nl/export.html. 
+
+#### Top Artists, Albums and Songs
+
+Here, I made 3 separate graphs analyzing the 3 major categories I had, those being artist, album title and song name. Looking at these 3 charts can help give me an accurate representation of what the bulk of my listening has been.
+
+```{r}
+TopArtists <- listeninghistory %>% mutate(count = 1) %>% group_by(artist) %>% summarise(TotalListens = sum(count)) %>% arrange(-TotalListens) %>% head(10)
+
+TopArtistsChart <- ggplot(aes(x = reorder(artist, -TotalListens), y = TotalListens, fill = artist), data = TopArtists) + geom_bar(stat = "identity") + labs(title = "Top Artists by # of Listens",
+        x = "Artist", y = "Total Listens")
+ggplotly(TopArtistsChart)
+```
+
+
+```{r}
+TopAlbums <- listeninghistory %>% mutate(count = 1) %>% group_by(album) %>% summarise(TotalListens = sum(count)) %>% arrange(-TotalListens) %>% head(10)
+
+TopAlbumsChart <- ggplot(aes(x = reorder(album, -TotalListens), y = TotalListens, fill = album), data = TopAlbums) + geom_bar(stat = "identity") + labs(title = "Top Albums by # of Listens",
+        x = "Album", y = "Total Listens")
+ggplotly(TopAlbumsChart)
+```
+
+
+```{r}
+TopSongs <- listeninghistory %>% mutate(count = 1) %>% group_by(track) %>% summarise(TotalListens = sum(count)) %>% arrange(-TotalListens) %>% head(10)
+
+TopSongsChart <- ggplot(aes(x = reorder(track, -TotalListens), y = TotalListens, fill = track), data = TopSongs) + geom_bar(stat = "identity") + labs(title = "Top Songs by # of Listens",
+        x = "Song", y = "Total Listens")
+ggplotly(TopSongsChart)
+```
+
+None of the results I received from the 3 charts were surprising, but they provided insight on what I've been listening to the most of. My top song of the last 3 years was Talk Down by Dijon, my top album was CTRL by SZA, and my top artist was Mac Miller.
+
+
+#### Listens Over Time
+
+The next thing I wanted to look at was my listens over time, where I was curious if there was a noticeable peak on certain days.
+
+```{r}
+listeninghistory$utc_time <- as.Date(listeninghistory$utc_time, "%d %b %Y, %H:%M")
+library(dplyr)
+songs_per_day <- listeninghistory %>%
+  group_by(utc_time) %>%
+  summarize(num_songs = n())
+
+library(ggplot2)
+myplot <- ggplot(songs_per_day, aes(x = utc_time, y = num_songs)) +
+  geom_point(aes(color = num_songs)) +
+  labs(x = "Date", y = "Number of Songs Listened")
+ggplotly(myplot)
+```
+
+From this plot, you can see that the highest listen was December 11th 2022, which interestingly enough was during Finals Week of the winter semester. Down below is a chart version of the graph above, showing the top 10 days with the most songs listened.
+
+```{r}
+songs_per_day %>% arrange(-num_songs) %>% head(10)
+```
+```{r}
+decemberday <- listeninghistory %>% filter(utc_time == "2022-12-11") %>% group_by(track, artist) %>% summarise(timeslistened = n()) %>% arrange(-timeslistened) %>% head(10)
+decemberday
+```
+
+Looking at that day (December 11th, 2022) specifically, my most listened to song was 6 Five Heartbearts by The Alchemist.
+
+
