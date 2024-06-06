@@ -1,0 +1,23 @@
+---
+title: 'HW #5'
+author: "Charles Etuk"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+1. Write ONE paragraph discussing the issues arising from each of these scenarios (so THREE paragraphs total, one for each question): 
+
+(a) In 2006, AOL released a database of search terms that users had used in the prior month (see http://www.nytimes.com/2006/08/09/technology/09aol.html). Research this disclosure and the reaction that ensued. What ethical issues are involved? What potential impact has this disclosure had? 
+
+This data disclosure presents an issue of user privacy, along with how companies store data and the level of identifiability. In this case the search logs may have all been "anonymized" but when the data was still so easily identifiable, all sense of user privacy gets completely thrown out the window regardless. AOL was sued for this disclosure and eventually settled the case in 2013, creating an impact that shifted towards greater legal protections involving identifiable user data.
+
+(b) A Slate article (http://tinyurl.com/slate-ethics) discussed whether race/ethnicity should be included in a predictive model for how long a homeless family would stay in homeless services. Discuss the ethical considerations involved in whether race/ethnicity should be included as a predictor in the model. 
+
+In this scenario when trying to use race in creating a predictive model, the biggest ethical consideration is what "race" related data you'd be using in creating the model. While you may be trying to create a more accurate model, inputing race related is tricky because with the history of existing racial prejudice, your data will inherently be biased towards certain results without considering the factors behind them. Especially in this case where the situation is dealing with homelessness which has the confounding factors of race, socioeconomic status and more, there's no way to cleanly use race in the model without additionally adding the historical factors. I think the ethics become different when it comes to positive impact like distributing resources vs. a harsher act like criminal justice, but regardless it faces the ethical concern of "garbage-in, garbage-out."
+
+(c) A company uses a machine-learning algorithm to determine which job advertisement to display for users searching for technology jobs. Based on past results, the algorithm tends to display lower-paying jobs for women than for men (after controlling for other characteristics than gender). What ethical considerations might be considered when reviewing this algorithm?
+
+This is similar to the last question where the ethical considerations here come from what data was inputted to based the algorithm on. Historically, women have been denied equal access to higher paying jobs especially in tech fields, which would cause the algorithm to mirror that history of gender discrimination. The initial source of our data may be biased, causing the results of the algorithm to be equally biased. Once again, we have to follow the saying of "garbage-in, garbage out."

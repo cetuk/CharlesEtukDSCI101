@@ -1,0 +1,104 @@
+---
+title: "DSCI 101 HW #2"
+author: "Charles Etuk"
+date: "2023-02-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+library(Lahman)
+library(nycflights13)
+```
+### Question 1
+##### 1a) Create a data frame that is a subset of the Teams data frame that contains only the years from 2000 through 2009 and the variables yearID, W, and L.
+_*Code:*_
+```{r}
+SelectYears <- filter(Teams, yearID >= 2000 & yearID <= 2009) %>% select(yearID, W, L)
+SelectYears
+```
+
+##### 1b) How many years did the Chicago Cubs (teamID is “CHN”) hit at least 200 HRs in a season and what was the median number of wins in those seasons.
+_*Code:*_
+```{r}
+ChicagoTeams <- Teams %>% filter(Teams$teamID == "CHN") %>% filter(HR >= 200)
+ChicagoTeams %>% nrow()
+summary(ChicagoTeams$W)
+```
+There were 7 years where the Chicago Cubs hit at least 200 home runs, and the median number of wins in those seasons was 84.
+
+
+##### 1c) Make a line plot of total home runs per season and stratify by league. (Remove observations where league is missing.) Comment on anything interesting that you observe.
+_*Code:*_
+``` {r}
+OneC <- Teams %>% group_by(yearID, lgID) %>% summarize(HRbyLg = sum(HR))
+ggplot(aes(x = yearID, y = HRbyLg), data = OneC) + geom_line(aes(color = lgID)) 
+```
+
+
+The line plot has dips around 1981 and 2020, which can be explained by the MLB strike in 1981, and Covid-19 respectively. Also, while the NL and AL graphs relatively follow the same pattern, it's interesting that from 1975 to around 1990 there seems to be a major disparity in home run totals. 
+
+
+##### 1d)  Create an indicator variable called “winning record” which is defined as TRUE if the number of wins is greater than the number of losses and FALSE otherwise. Plot a scatter plot of Runs (R) vs Runs against (RA) with the color of each point showing whether that team had a winning record or not.
+_*Code:*_
+```{r}
+Teams <- mutate(Teams, winning_record = Teams$W > Teams$L)
+ggplot(aes(x = R, y = RA), data = Teams) + geom_point(aes(color = winning_record))
+```
+
+
+##### 1e) Using ggplot2, create a scatterplot of strikeouts (SO) vs walks (BB).
+_*Code:*_
+```{r}
+ggplot(aes(x = SO, y = BB), data = Teams) + geom_point()
+```
+
+##### 1f) Create a categorical variable with 4 levels: before 1900, 1900 - 1949, 1950-1999, 2000 or later. (Hint: There is a function called ’cut’ that will help you here.) Use this as the color of the point in the scatterplot of strikeouts vs walks that you created in the previous problem.
+_*Code:*_
+```{r}
+Teams <- Teams %>% mutate(ByYears = cut(yearID, breaks = c(0, 1900, 1949, 1999, 2023), labels = c("pre-1900", "1900-1949", "1950-1999", "post-2000")))
+ggplot(aes(x = SO, y = BB), data = Teams) + geom_point(aes(color = ByYears))
+```
+
+### Question 2
+##### 2a) What month had the highest proportion of cancelled flights? What month had the lowest? Interpret any seasonal patterns.
+_*Code:*_
+```{r}
+Flights <- flights
+Flights %>% mutate(Cancelled = is.na(dep_time)) %>% group_by(month) %>% summarize(PropCancelled = mean(Cancelled)) %>% arrange(-PropCancelled)
+```
+February had the highest proportion of cancelled flights while October had the lowest proportion. As for seasonal trends, the top two months are during the winter season, while the bottom 3 are all fall months.  
+
+
+##### 2b) Create a histogram of the departure delays times (dep delay) for all flights that had a delay time greater than 0.
+_*Code:*_
+```{r}
+DelayedFlights <- filter(Flights, dep_delay > 0)
+ggplot(aes(x = dep_delay), data = DelayedFlights) + geom_histogram()
+```
+
+##### 2c) Repeat the same histogram, but now facet by month.
+_*Code:*_
+```{r}
+DelayedFlights <- filter(Flights, dep_delay > 0)
+ggplot(aes(x = dep_delay), data = DelayedFlights) + geom_histogram() + facet_wrap(~month)
+```
+
+##### 2d) Create side-by-side boxplots of delay times for flights with delays 60 minutes or greater for the top 5 airlines (in terms of number of flights).
+_*Code:*_
+```{r}
+Flights %>% filter(dep_delay >= 60) %>% group_by(carrier) %>% summarize(TotalFlights = table(carrier)) %>% arrange(-TotalFlights) %>% head(5)
+TopCarriersBoxPlot <- Flights %>% filter(dep_delay > 60, carrier == "EV" | carrier == "B6" | carrier == "UA" | carrier == "DL" | carrier == "MQ")
+ggplot(aes(y = dep_delay, x = carrier), data = TopCarriersBoxPlot) + geom_boxplot(aes(color = carrier))
+```
+
+
+
+
+
+
+
+
+

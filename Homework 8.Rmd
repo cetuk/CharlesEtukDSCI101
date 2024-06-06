@@ -1,0 +1,47 @@
+---
+title: "Homework 8"
+author: "Charles Etuk"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(mosaicData)
+data(Gestation)
+```
+
+1. Find median age of the mother in this data set. Then use bootstrapping
+to estimate the standard error of the median age of the mother.
+```{r}
+gestationage <- na.omit(Gestation$age)
+median(gestationage)
+
+n <- 250
+sampleages <- sample(gestationage,n, replace = FALSE)
+samplemed <- median(sampleages)
+mediansim <- function(i){
+n <- length(sampleages)
+set <- sample(sampleages,n, replace = TRUE)
+bootmedian <- median(set)
+return(bootmedian)
+}
+simulations <- 10000
+results <- map_dbl(1:simulations, mediansim)
+
+sd(results)
+```
+
+2. Alcohol assumption is significantly associated with lung cancer. Name
+a variable that is likely confounding the relationship between alcohol
+consumption and lung cancer.
+
+A possible confounding variable in the relationship between alcohol consumpion and lung cancer is smoking cigarettes. Smoking cigarettes has a much higher correlation with lung cancer, and those who smoke cigarettes are likely to also drink.
+
+
+3. Explain why overfitting in machine learning is bad.
+
+Overfitting in machine learning is bad because it means the model is too heavily fit to the training data, and won't be as useful to make predictions about things outside the training data set.
+

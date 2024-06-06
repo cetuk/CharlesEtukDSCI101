@@ -1,0 +1,30 @@
+---
+title: "Homework 6"
+author: "Charles Etuk"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+```
+1. You are playing Dungeons and Dragons. You are an Elf named Steve and you come up against a Orc named Mobrukk Pride Bruiser. You must battle. In order to defeat the Mobrukk you must do the following:
+
+(a) Roll a 6 sided die and call this number n.
+```{r}
+n <- sample(1:6, 1)
+n
+```
+(b) You now get n 20 sided dice and you roll all of them. You defeat the Mobrukk if ANY of the n 20 sided die display a prime number. What is the probability that you defeat Mobrukk?
+```{r}
+primes <- c(2, 3, 5, 7, 11, 13, 17, 19)
+anyprimes <- function(i){
+  any(sample(1:20,n, replace = TRUE) %in% primes)
+}
+results <- map_dbl(1:1000000,anyprimes)
+mean(results)
+
+cat("The probability of rolling a prime number on at least one of", n, "20-sided dice is", mean(results))
+```

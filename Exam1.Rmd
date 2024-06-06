@@ -1,0 +1,92 @@
+---
+title: "Exam 1"
+author: "Charles Etuk"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+cereal <- read.csv("https://raw.githubusercontent.com/gjm112/LoyolaTeaching/main/cereal.csv")
+cereal_mfr <- read.csv("https://raw.githubusercontent.com/gjm112/LoyolaTeaching/main/cereal_mfr.csv")
+inspections <- read.csv("/Users/charlesetuk/Downloads/inspections_clean.csv")
+inspections <- inspections %>% filter(license_number > 0)
+```
+### Question 1
+##### 1a) (10 points) Create a data set that includes only cereals that are on shelf 3 and includes only the following variables: name, mfr, type, calories, cups and rating.
+```{r}
+Cereal3 <- cereal %>% filter(shelf == "3") %>% select(name, mfr, type, calories, cups, rating)
+Cereal3
+```
+
+##### 1b) (10 points) Using the data from the previous part, create a new variable that is defined as calories divided by cups and sort the data set by this new variable from largest to smallest. Which shelf 3 cereal has the highest calories per cup?
+```{r}
+Cereal3 %>% mutate(CalPerCup = calories/cups) %>% arrange(-CalPerCup) %>% head(1)
+```
+Grape-Nuts has the highest calories per cup on shelf 3 at 440.
+
+##### 1c) (10 points) Using all the cereal data, merge the full name of the manufacturer onto the data set and then compute the average rating by manufacturer. Which manufacturer has the higest rating? Which manufacturer has the lowest rating? What is the best cereal ever made?
+```{r}
+cereal %>% group_by(mfr) %>% summarise(AverageRating = mean(rating)) %>% left_join(cereal_mfr, by = c("mfr" = "mfr")) %>% select(mfr_full, AverageRating) %>% arrange(-AverageRating)
+```
+Nabisco has the highest average rating at 68.0 and General Mills has the lowest rating at 34.5. In my objective opinion, Cinnamon Toast Crunch is the best cereal ever.
+
+##### 1d) (10 points) Create a table where the rows are the full name of the manufacturer and the columns are shelf and the values in each cell of the table are the number of cereals that fall into that category (e.g. the number of cereals manufactured by Nabisco on shelf 2.) (Bonus points: (+2.5 is the columns and rows are correctly orderd. +2.5 if the NAs are replace by 0s))
+```{r}
+Shelf1 <- cereal %>% filter(shelf == "1") %>% count(mfr) %>% rename(shelf1 = n)
+Shelf2 <- cereal %>% filter(shelf == "2") %>% count(mfr) %>% rename(shelf2 = n)
+Shelf3 <- cereal %>% filter(shelf == "3") %>% count(mfr) %>% rename(shelf3 = n)
+MfrByShelf <- Shelf1 %>% full_join(Shelf2, by = c("mfr" = "mfr")) %>% full_join(Shelf3, by = c("mfr" = "mfr")) %>% left_join(cereal_mfr, by = c("mfr" = "mfr")) %>% select(mfr_full, shelf1, shelf2, shelf3) 
+MfrByShelf <- MfrByShelf %>% replace(is.na(MfrByShelf),0)
+MfrByShelf
+```
+
+##### 1e) (10 points) Create a scatterplot with calories per cup on the x-axis and rating on the y-axis with color used to indicate the shelf that the cereal is sold on. Comment on any trends that you notice.
+```{r}
+cerealplot <- cereal %>% mutate(CalPerCup = calories/cups)
+cerealplot$shelf <- as.factor(cerealplot$shelf)
+ggplot(aes(CalPerCup, rating, color = shelf), data = cerealplot) + geom_point() + scale_color_manual(breaks = c("1", "2", "3"), values=c("red", "blue", "green2"))
+```
+
+Shelf 3 has a lot more cereals with higher calories per cup in comparison to the other shelves. Every data point from ~180-450 Cal/Cup is on shelf 3.
+
+### Question 2
+##### 2a) (10 points) Create a table that has license number and the count of how many tests resulted in ”Fail”. What are the names (i.e. dba name) of the businesses that are in the top ten for most failed inspections?
+```{r}
+inspections %>% filter(results == "Fail") %>% mutate(Fail = 1) %>% group_by(license_number, dba_name) %>% summarise(FailCounts = sum(Fail)) %>% arrange(-FailCounts) %>% head(10) 
+```
+The businesses that are top 10 in failed inspections are Las Islans Marias, Lumes Pancake House, Iyanze, Mariscos Las Islitas, Silver's Seafood Restaurant, Josephine's Cookin', Pizza Capri, Taqueria El Ranchito, Devon Market and Nicky's Chinese Food.
+
+##### 2b) (10 points) What is the pass rate by inspection type?
+```{r}
+inspectionsrate <- inspections %>% mutate(Pass = case_when(results == 'Pass' ~ 1, results == 'Fail' ~ 0, results == 'Pass w/ Conditions' ~ 1)) %>% mutate(Fail = case_when(results == 'Pass' ~ 0, results == 'Fail' ~ 1, results == 'Pass w/ Conditions' ~ 0))
+inspectionsrate %>% group_by(inspection_type) %>% summarise(PassRate = sum(Pass)/(sum(Fail)+sum(Pass))) 
+```
+Canvass inspections have a pass rate of 80.6%, complaints have a pass rate of 73%, and licenses have a pass rate of 69.2%.
+
+##### 2c) (10 points)How many businesses (defined by license number) have ever failed an inspection?
+```{r}
+inspections %>% filter(results == "Fail") %>% count(license_number) %>% nrow()
+```
+
+##### 2d) (10 points) Using only businesses in with zip code equal to 60660 or 60626 (i.e. Rogers Park and Edgewater), count the number of inspections that each license number has had. Then plot side by side boxplots of the number of inspections stratified by zip code.
+```{r}
+RPEWinspections <- inspections %>% filter(zip == 60660 | zip == 60626) %>% mutate(counter = 1)
+RPEWinspectionsZip <- RPEWinspections %>% group_by(license_number) %>% summarise(zipcode = mean(zip), TotalCounts = sum(counter))
+ggplot(aes(y = TotalCounts), data = RPEWinspectionsZip) + geom_boxplot() + facet_wrap(~zipcode)
+```
+
+##### 2e) (10 points) What is the restaurant with the largest number of inspections that has passed (do NOT include “passed with conditions”) ALL of their inspections and how many inspections did they have? That is which restaurant had the most inspections without any failure?
+```{r}
+restaurantinspections <- inspections %>% filter(facility_type == "restaurant")
+allpassed <- restaurantinspections %>% mutate(PorF = case_when(results == 'Pass' ~ 1, results == 'Fail' ~ 0, results == 'Pass w/ Conditions' ~ 0)) %>% mutate(counter = 1) %>% group_by(license_number, dba_name) %>% summarise(PassTotal = (sum(PorF)), TotalInspections = sum(counter))
+allpassed %>% filter(PassTotal == TotalInspections) %>% arrange(-PassTotal) %>% head(5)
+allpassed2 <- restaurantinspections %>% mutate(PorF = case_when(results == 'Pass' ~ 1, results == 'Fail' ~ 0, results == 'Pass w/ Conditions' ~ 0)) %>% mutate(counter = 1) %>% group_by(dba_name) %>% summarise(PassTotal = (sum(PorF)), TotalInspections = sum(counter))
+allpassed2 %>% filter(PassTotal == TotalInspections) %>% arrange(-PassTotal) %>% head(5)
+```
+For all individual restaurants with 100% pass inspection rate, the Subway with the license number 1492416 has the highest total with 17/17 passed inspections. For all businesses (defined by dba_name) with 100% pass inspection rate, Manny's Cafe Midway has the highest total with 16/16 inspections.
+
+

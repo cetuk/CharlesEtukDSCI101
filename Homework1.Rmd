@@ -1,0 +1,99 @@
+---
+title: "DSCI 101 HW #1"
+author: "Charles Etuk"
+date: "2023-01-27"
+output: html_document
+---
+### Question 1
+Github repository link: <https://github.com/cetuk/CharlesEtukDSCI101.git>
+
+
+### Question 2
+##### 2a) How many total games have the Cubs won and lost between 1876 and 2022?
+_*Code:*_
+```
+sum(cubs$W)
+sum(cubs$L)
+```  
+The Cubs have won 11141 games, and lost 10592 games between 1876 and 2022.
+
+
+##### 2b) What year did the Cubs score the most runs? What year did the Cubs score the fewest runs? Do you have any thoughts about the year that the Cubs scored the fewest runs?
+_*Code:*_
+```  
+RunsByYear <- arrange(cubs, desc(cubs$R)) or cubs %>% arrange(R) %>% head(1)
+  RunsByYear
+RunsByYear <- arrange(cubs, +cubs$R) or cubs %>% arrange(-R) %>% head(1)
+  RunsByYear 
+```
+The Cubs scored the highest number of runs in 1894 (1056), and scored the least amount of runs in 2020 (265). The Cubs played 60 games in 2020 due to COVID-19 versus 137 in 1894 which would explain the large run disparity.
+
+
+##### 2c) In how many seasons was the Cubs total attendance (i.e. the variable Attendance) over 3 million?
+_*Code:*_
+```
+CubsAttendance <- cubs$Attendance[!is.na(cubs$Attendance)]
+  sum(CubsAttendance > 3000000) 
+  
+  or 
+  
+cubs %>% filter(Attendance > 3000000) %>% nrow()
+```
+There were 12 years where the Cubs total attendance was over 3 million.
+
+
+##### 2d) In the years between 1982 and 2000 (inclusive), what was the greatest ratio of runs for (R) to runs against (RA) in a single season?
+_*Code:*_
+```
+YearsSelective <- cubs %>% filter(cubs$Year > 1981) 
+  YearsSelectiveRatio <- YearsSelective %>% filter(YearsSelective$Year < 2001) 
+  YearsSelectiveRatio %>% mutate(YearsSelectiveRatio, Ratio = YearsSelectiveRatio$R/YearsSelectiveRatio$RA)
+  YearsSelectiveRatio
+  
+or 
+
+cubs %>% mutate(ratio R/RA) %>% filter(Year <= 2000 & Year >= 1982) %>% arrange (-ratio) %>% head(1)
+```
+The greatest ratio of runs to runs allowed between 1982 and 2000 was 1.1580547, in 1984.
+
+
+### Question 3
+##### 3a) How many colleges in this data set are in Illinois?
+_*Code:*_
+```
+college %>% filter(stateCode == "IL") %>% nrow()
+```
+
+
+##### 3b) Find the undergraduate student population of Loyola University Chicago. How many colleges in this data set have a larger undergraduate student population than Loyola University Chicago?
+_*Code:*_
+```
+LoyolaUG <- college %>% filter(c(organizationName) == "Loyola University Chicago") %>% select(undergradPop) 
+  LoyolaUG 
+UndergradPopCount <- college %>% filter(undergradPop > 13878)
+  count(UndergradPopCount)
+  
+or 
+
+LoyolaUG <- college %>% filter(c(organizationName) == "Loyola University Chicago") select(undergradPop) 
+college %>% filter(undergradPop > LoyolaUG$undergradPop) %>% nrow()
+```
+Loyola has an undergraduate student population of 13,878. Out of the schools in this data set, 168 schools have a greater undergraduate student population than Loyola.
+
+
+##### 3c) Find the college that is the furthest north. Repeat this for south, east, and west. Comment on anything interesting that you find.
+_*Code:*_
+```
+CollegeCoordinates <- college %>% select (organizationName, longitude, latitude)
+  TidyCoordinates <- na.omit(CollegeCoordinates)
+  arrange(TidyCoordinates, latitude) %>% head(TidyCoordinates, n=5)
+  arrange(TidyCoordinates, -latitude) %>% head(TidyCoordinates, n=5)
+  arrange(TidyCoordinates, longitude) %>% head(TidyCoordinates, n=5)
+  arrange(TidyCoordinates, -longitude) %>% head(TidyCoordinates, n=5)
+  
+or 
+
+college %>% arrange(longitude) %>% head(1) %>% select(organizationName,latitude,longitude)
+``` 
+The college furthest north is Western Washington University (latitude = 48.75235), the college furthest east is Colby College (longitude = -69.65960), and the University of Hawaii, Manoa was both the furthest college south (latitude = 21.29937) and west (longitude = -157.82005).
+  
